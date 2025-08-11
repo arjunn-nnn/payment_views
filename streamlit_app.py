@@ -8,7 +8,7 @@ import snowflake.connector
 import sseclient
 import streamlit as st
 
-# Load credentials from Streamlit secrets
+# Load credentials from Streamlit secrets (no password for SSO)
 SNOWFLAKE_USER = st.secrets["snowflake"]["user"]
 SNOWFLAKE_ACCOUNT = st.secrets["snowflake"]["account"]
 SNOWFLAKE_WAREHOUSE = st.secrets["snowflake"]["warehouse"]
@@ -17,20 +17,18 @@ DATABASE = st.secrets["snowflake"]["database"]
 SCHEMA = st.secrets["snowflake"]["schema"]
 STAGE = st.secrets["snowflake"]["stage"]
 FILE = st.secrets["snowflake"]["file"]
-SNOWFLAKE_PASSWORD = st.secrets["snowflake"]["password"]  # OAuth or PAT token
 
-# Connect to Snowflake using token authentication (no password)
+# Connect to Snowflake using SSO via external browser
 if "conn" not in st.session_state:
     st.session_state.conn = snowflake.connector.connect(
-    user=SNOWFLAKE_USER,
-    # password=SNOWFLAKE_PASSWORD,
-    account=SNOWFLAKE_ACCOUNT,
-    warehouse=SNOWFLAKE_WAREHOUSE,
-    role=SNOWFLAKE_ROLE,
-    database=DATABASE,
-    authenticator="externalbrowser",
-    schema=SCHEMA  # <-- Explicitly set authenticator to 'snowflake'
-)
+        user=SNOWFLAKE_USER,
+        account=SNOWFLAKE_ACCOUNT,
+        warehouse=SNOWFLAKE_WAREHOUSE,
+        role=SNOWFLAKE_ROLE,
+        database=DATABASE,
+        schema=SCHEMA,
+        authenticator="externalbrowser"
+    )
 
 
 def get_conversation_history() -> list[dict[str, Any]]:
@@ -54,11 +52,11 @@ def send_message() -> requests.Response:
         "semantic_model_file": f"@{DATABASE}.{SCHEMA}.{STAGE}/{FILE}",
         "stream": True,
     }
+    # Note: No token header here since SSO session is used
     resp = requests.post(
         url=f"https://{st.session_state.conn.host}/api/v2/cortex/analyst/message",
         json=request_body,
         headers={
-            "Authorization": f'Snowflake Token="{SNOWFLAKE_TOKEN}"',
             "Content-Type": "application/json",
         },
         stream=True,
