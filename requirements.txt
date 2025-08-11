@@ -1,0 +1,6 @@
+streamlit>=1.30.0
+pandas
+requests
+snowflake-connector-python
+sseclient-py
+snowflake-snowpark-python
