@@ -1,13 +1,13 @@
 name: payment_env
 channels:
-  - defaults
   - conda-forge
+  - defaults
 dependencies:
   - python=3.11
-  - streamlit
-  - pandas
-  - requests
-  - snowflake-connector-python
   - pip
   - pip:
-      - sseclient
+      - streamlit
+      - snowflake-connector-python
+      - pandas
+      - requests
+      - sseclient  # 👈 Add this line
