@@ -1,7 +1,13 @@
-name: app_environment
+name: myenv
 channels:
-  - snowflake
+  - defaults
+  - conda-forge
 dependencies:
-  - python=3.11.*
-  - snowflake-snowpark-python=
-  - streamlit=
+  - python=3.11
+  - streamlit
+  - pandas
+  - requests
+  - snowflake-connector-python
+  - pip
+  - pip:
+      - sseclient
