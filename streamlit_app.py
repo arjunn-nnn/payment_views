@@ -19,14 +19,14 @@ STAGE = st.secrets["snowflake"]["stage"]
 FILE = st.secrets["snowflake"]["file"]
 SNOWFLAKE_TOKEN = st.secrets["snowflake"]["token"]  # OAuth or PAT token
 
-# Connect to Snowflake using token authentication
+# Connect to Snowflake using token authentication (no password)
 if "conn" not in st.session_state:
     st.session_state.conn = snowflake.connector.connect(
         user=SNOWFLAKE_USER,
         account=SNOWFLAKE_ACCOUNT,
         warehouse=SNOWFLAKE_WAREHOUSE,
         role=SNOWFLAKE_ROLE,
-        token=SNOWFLAKE_TOKEN,  # <-- Use token here instead of password
+        token=SNOWFLAKE_TOKEN,
         database=DATABASE,
         schema=SCHEMA,
     )
@@ -38,14 +38,14 @@ def get_conversation_history() -> list[dict[str, Any]]:
         m = {"role": msg["role"], "content": []}
         for content in msg["content"]:
             if isinstance(content, pd.DataFrame):
-                # We don't send dataframes back to API
-                continue
+                continue  # Skip dataframes for API
             elif isinstance(content, Exception):
                 continue
             else:
                 m["content"].append({"type": "text", "text": content})
         messages.append(m)
     return messages
+
 
 def send_message() -> requests.Response:
     request_body = {
@@ -57,7 +57,7 @@ def send_message() -> requests.Response:
         url=f"https://{st.session_state.conn.host}/api/v2/cortex/analyst/message",
         json=request_body,
         headers={
-            "Authorization": f'Snowflake Token="{st.session_state.conn.rest.token}"',
+            "Authorization": f'Snowflake Token="{SNOWFLAKE_TOKEN}"',
             "Content-Type": "application/json",
         },
         stream=True,
@@ -66,6 +66,7 @@ def send_message() -> requests.Response:
         return resp
     else:
         raise Exception(f"Failed request with status {resp.status_code}: {resp.text}")
+
 
 def stream_events(events: Iterator[sseclient.Event]) -> Generator[Any, Any, Any]:
     prev_index = -1
@@ -104,6 +105,7 @@ def stream_events(events: Iterator[sseclient.Event]) -> Generator[Any, Any, Any]
             st.session_state.error = data
             return
 
+
 def display_df(df: pd.DataFrame) -> None:
     if len(df.index) > 1:
         data_tab, line_tab, bar_tab = st.tabs(["Data", "Line Chart", "Bar Chart"])
@@ -116,6 +118,7 @@ def display_df(df: pd.DataFrame) -> None:
             st.bar_chart(df)
     else:
         st.dataframe(df)
+
 
 def process_message(prompt: str) -> None:
     st.session_state.messages.append({"role": "user", "content": [prompt]})
@@ -150,6 +153,7 @@ def process_message(prompt: str) -> None:
     st.session_state.status = "Interpreting question"
     st.session_state.messages.append({"role": "analyst", "content": accumulated_content})
 
+
 def show_conversation_history() -> None:
     for message in st.session_state.messages:
         chat_role = "assistant" if message["role"] == "analyst" else "user"
@@ -161,6 +165,7 @@ def show_conversation_history() -> None:
                     st.error(f"Error while processing request:\n {content}", icon="🚨")
                 else:
                     st.write(content)
+
 
 # --- Streamlit UI setup ---
 
