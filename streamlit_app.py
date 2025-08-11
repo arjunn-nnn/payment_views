@@ -22,15 +22,15 @@ SNOWFLAKE_TOKEN = st.secrets["snowflake"]["token"]  # OAuth or PAT token
 # Connect to Snowflake using token authentication (no password)
 if "conn" not in st.session_state:
     st.session_state.conn = snowflake.connector.connect(
-        user=SNOWFLAKE_USER,
-        account=SNOWFLAKE_ACCOUNT,
-        warehouse=SNOWFLAKE_WAREHOUSE,
-        role=SNOWFLAKE_ROLE,
-        authenticator="externalbrowser",
-        token=SNOWFLAKE_TOKEN,
-        database=DATABASE,
-        schema=SCHEMA,
-    )
+    user=SNOWFLAKE_USER,
+    password=SNOWFLAKE_TOKEN,    # <-- Pass the PAT here as password
+    account=SNOWFLAKE_ACCOUNT,
+    warehouse=SNOWFLAKE_WAREHOUSE,
+    role=SNOWFLAKE_ROLE,
+    database=DATABASE,
+    schema=SCHEMA,
+    authenticator="snowflake",   # <-- Explicitly set authenticator to 'snowflake'
+)
 
 
 def get_conversation_history() -> list[dict[str, Any]]:
