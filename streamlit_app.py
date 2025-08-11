@@ -8,28 +8,26 @@ import snowflake.connector
 import sseclient
 import streamlit as st
 
-# Load credentials from Streamlit secrets (no password for SSO)
+# Load credentials from Streamlit secrets
 SNOWFLAKE_USER = st.secrets["snowflake"]["user"]
+SNOWFLAKE_PASSWORD = st.secrets["snowflake"]["password"]
 SNOWFLAKE_ACCOUNT = st.secrets["snowflake"]["account"]
 SNOWFLAKE_WAREHOUSE = st.secrets["snowflake"]["warehouse"]
 SNOWFLAKE_ROLE = st.secrets["snowflake"]["role"]
 DATABASE = st.secrets["snowflake"]["database"]
 SCHEMA = st.secrets["snowflake"]["schema"]
-STAGE = st.secrets["snowflake"]["stage"]
-FILE = st.secrets["snowflake"]["file"]
 
-# Connect to Snowflake using SSO via external browser
+# Connect to Snowflake using username + password (no external browser)
 if "conn" not in st.session_state:
     st.session_state.conn = snowflake.connector.connect(
         user=SNOWFLAKE_USER,
+        password=SNOWFLAKE_PASSWORD,
         account=SNOWFLAKE_ACCOUNT,
         warehouse=SNOWFLAKE_WAREHOUSE,
         role=SNOWFLAKE_ROLE,
         database=DATABASE,
         schema=SCHEMA,
-        authenticator="externalbrowser"
     )
-
 
 def get_conversation_history() -> list[dict[str, Any]]:
     messages = []
