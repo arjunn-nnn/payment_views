@@ -9,25 +9,28 @@ import sseclient
 import streamlit as st
 
 # Load credentials from Streamlit secrets
-SNOWFLAKE_USER = st.secrets["SNOWFLAKE_USER"]
-SNOWFLAKE_PASSWORD = st.secrets["SNOWFLAKE_PASSWORD"]
-SNOWFLAKE_ACCOUNT = st.secrets["SNOWFLAKE_ACCOUNT"]
-SNOWFLAKE_WAREHOUSE = st.secrets["SNOWFLAKE_WAREHOUSE"]
-SNOWFLAKE_ROLE = st.secrets["SNOWFLAKE_ROLE"]
-DATABASE = st.secrets["DATABASE"]
-SCHEMA = st.secrets["SCHEMA"]
-STAGE = st.secrets["STAGE"]
-FILE = st.secrets["FILE"]
+SNOWFLAKE_USER = st.secrets["snowflake"]["user"]
+SNOWFLAKE_ACCOUNT = st.secrets["snowflake"]["account"]
+SNOWFLAKE_WAREHOUSE = st.secrets["snowflake"]["warehouse"]
+SNOWFLAKE_ROLE = st.secrets["snowflake"]["role"]
+DATABASE = st.secrets["snowflake"]["database"]
+SCHEMA = st.secrets["snowflake"]["schema"]
+STAGE = st.secrets["snowflake"]["stage"]
+FILE = st.secrets["snowflake"]["file"]
+SNOWFLAKE_TOKEN = st.secrets["snowflake"]["token"]  # OAuth or PAT token
 
-# Connect to Snowflake
+# Connect to Snowflake using token authentication
 if "conn" not in st.session_state:
     st.session_state.conn = snowflake.connector.connect(
         user=SNOWFLAKE_USER,
-        password=SNOWFLAKE_PASSWORD,
         account=SNOWFLAKE_ACCOUNT,
         warehouse=SNOWFLAKE_WAREHOUSE,
         role=SNOWFLAKE_ROLE,
+        token=SNOWFLAKE_TOKEN,  # <-- Use token here instead of password
+        database=DATABASE,
+        schema=SCHEMA,
     )
+
 
 def get_conversation_history() -> list[dict[str, Any]]:
     messages = []
