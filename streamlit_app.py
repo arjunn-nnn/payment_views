@@ -7,27 +7,47 @@ import requests
 import snowflake.connector
 import sseclient
 import streamlit as st
+import pyotp  # For TOTP (if you have the secret)
 
-# Load credentials from Streamlit secrets
+# Load Snowflake credentials
 SNOWFLAKE_USER = st.secrets["snowflake"]["user"]
-SNOWFLAKE_PASSWORD = st.secrets["snowflake"]["password"]
 SNOWFLAKE_ACCOUNT = st.secrets["snowflake"]["account"]
 SNOWFLAKE_WAREHOUSE = st.secrets["snowflake"]["warehouse"]
 SNOWFLAKE_ROLE = st.secrets["snowflake"]["role"]
 DATABASE = st.secrets["snowflake"]["database"]
 SCHEMA = st.secrets["snowflake"]["schema"]
+STAGE = st.secrets["snowflake"]["stage"]
+FILE = st.secrets["snowflake"]["file"]
+PASSWORD = st.secrets["snowflake"]["password"]
+TOTP_SECRET = st.secrets["snowflake"].get("totp_secret")  # Optional
 
-# Connect to Snowflake using username + password (no external browser)
-if "conn" not in st.session_state:
-    st.session_state.conn = snowflake.connector.connect(
-        user=SNOWFLAKE_USER,
-        password=SNOWFLAKE_PASSWORD,
-        account=SNOWFLAKE_ACCOUNT,
-        warehouse=SNOWFLAKE_WAREHOUSE,
-        role=SNOWFLAKE_ROLE,
-        database=DATABASE,
-        schema=SCHEMA,
-    )
+# Step 1: Get or generate the MFA code
+if TOTP_SECRET:
+    totp = pyotp.TOTP(TOTP_SECRET)
+    current_totp = totp.now()
+else:
+    current_totp = st.text_input("🔐 Enter your current MFA code (TOTP):", type="password")
+
+# Step 2: Combine password + MFA code
+password_with_mfa = PASSWORD + current_totp
+
+# Step 3: Connect to Snowflake
+if "conn" not in st.session_state and current_totp:
+    try:
+        st.session_state.conn = snowflake.connector.connect(
+            user=SNOWFLAKE_USER,
+            password=password_with_mfa,
+            account=SNOWFLAKE_ACCOUNT,
+            warehouse=SNOWFLAKE_WAREHOUSE,
+            role=SNOWFLAKE_ROLE,
+            database=DATABASE,
+            schema=SCHEMA,
+        )
+        st.success("✅ Connected to Snowflake successfully!")
+    except Exception as e:
+        st.error(f"❌ Failed to connect to Snowflake: {e}")
+
+
 
 def get_conversation_history() -> list[dict[str, Any]]:
     messages = []
