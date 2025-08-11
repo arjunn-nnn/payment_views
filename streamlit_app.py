@@ -9,43 +9,50 @@ import sseclient
 import streamlit as st
 import pyotp  # For TOTP (if you have the secret)
 
-# Load Snowflake credentials
-SNOWFLAKE_USER = st.secrets["snowflake"]["user"]
-SNOWFLAKE_ACCOUNT = st.secrets["snowflake"]["account"]
-SNOWFLAKE_WAREHOUSE = st.secrets["snowflake"]["warehouse"]
-SNOWFLAKE_ROLE = st.secrets["snowflake"]["role"]
-DATABASE = st.secrets["snowflake"]["database"]
-SCHEMA = st.secrets["snowflake"]["schema"]
-STAGE = st.secrets["snowflake"]["stage"]
-FILE = st.secrets["snowflake"]["file"]
-PASSWORD = st.secrets["snowflake"]["password"]
-TOTP_SECRET = st.secrets["snowflake"].get("totp_secret")  # Optional
+# Set app title
+st.set_page_config(page_title="Snowflake Login", page_icon="❄️")
 
-# Step 1: Get or generate the MFA code
-if TOTP_SECRET:
-    totp = pyotp.TOTP(TOTP_SECRET)
-    current_totp = totp.now()
-else:
-    current_totp = st.text_input("🔐 Enter your current MFA code (TOTP):", type="password")
+st.title("🔐 Login to Snowflake")
 
-# Step 2: Combine password + MFA code
-password_with_mfa = PASSWORD + current_totp
+# Session state init
+if "conn" not in st.session_state:
+    st.session_state.conn = None
+if "login_failed" not in st.session_state:
+    st.session_state.login_failed = False
 
-# Step 3: Connect to Snowflake
-if "conn" not in st.session_state and current_totp:
-    try:
-        st.session_state.conn = snowflake.connector.connect(
-            user=SNOWFLAKE_USER,
-            password=password_with_mfa,
-            account=SNOWFLAKE_ACCOUNT,
-            warehouse=SNOWFLAKE_WAREHOUSE,
-            role=SNOWFLAKE_ROLE,
-            database=DATABASE,
-            schema=SCHEMA,
-        )
-        st.success("✅ Connected to Snowflake successfully!")
-    except Exception as e:
-        st.error(f"❌ Failed to connect to Snowflake: {e}")
+# Login form
+with st.form("login_form"):
+    username = st.text_input("Username", value="", placeholder="e.g. john.doe")
+    password = st.text_input("Password", type="password")
+    mfa_code = st.text_input("MFA Code (TOTP)", placeholder="e.g. 123456")
+    submitted = st.form_submit_button("Login")
+
+    if submitted:
+        try:
+            # Combine password + MFA code if provided
+            full_password = password + mfa_code if mfa_code else password
+
+            conn = snowflake.connector.connect(
+                user=username,
+                password=full_password,
+                account="NIBRWBR-MANA",  # Or from st.secrets or text_input
+                warehouse="COMPUTE_WH",
+                database="SALESFORCE_DB",
+                schema="SALESFORCE",
+                role="SALESFORCEDB"
+            )
+            st.session_state.conn = conn
+            st.success("✅ Connected to Snowflake successfully!")
+            st.session_state.login_failed = False
+
+        except Exception as e:
+            st.session_state.login_failed = True
+            st.error(f"❌ Failed to connect: {e}")
+
+# Once logged in, show rest of app
+if st.session_state.conn:
+    st.write("🎉 You're now connected to Snowflake!")
+    # Place the rest of your analyst app logic here
 
 
 
