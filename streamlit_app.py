@@ -26,6 +26,7 @@ if "conn" not in st.session_state:
         account=SNOWFLAKE_ACCOUNT,
         warehouse=SNOWFLAKE_WAREHOUSE,
         role=SNOWFLAKE_ROLE,
+        authenticator="externalbrowser",
         token=SNOWFLAKE_TOKEN,
         database=DATABASE,
         schema=SCHEMA,
