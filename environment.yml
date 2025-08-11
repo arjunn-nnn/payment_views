@@ -1,4 +1,4 @@
-name: myenv
+name: payment_env
 channels:
   - defaults
   - conda-forge
