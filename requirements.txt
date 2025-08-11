@@ -3,3 +3,4 @@ pandas
 requests
 snowflake-connector-python
 sseclient
+pyotp
