@@ -23,7 +23,7 @@ SNOWFLAKE_PASSWORD = st.secrets["snowflake"]["password"]  # OAuth or PAT token
 if "conn" not in st.session_state:
     st.session_state.conn = snowflake.connector.connect(
     user=SNOWFLAKE_USER,
-    password=SNOWFLAKE_PASSWORD,    # <-- Pass the PAT here as password
+    # password=SNOWFLAKE_PASSWORD,
     account=SNOWFLAKE_ACCOUNT,
     warehouse=SNOWFLAKE_WAREHOUSE,
     role=SNOWFLAKE_ROLE,
