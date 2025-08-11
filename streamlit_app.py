@@ -17,19 +17,18 @@ DATABASE = st.secrets["snowflake"]["database"]
 SCHEMA = st.secrets["snowflake"]["schema"]
 STAGE = st.secrets["snowflake"]["stage"]
 FILE = st.secrets["snowflake"]["file"]
-SNOWFLAKE_TOKEN = st.secrets["snowflake"]["token"]  # OAuth or PAT token
+SNOWFLAKE_TOKEN = st.secrets["snowflake"]["password"]  # OAuth or PAT token
 
 # Connect to Snowflake using token authentication (no password)
 if "conn" not in st.session_state:
     st.session_state.conn = snowflake.connector.connect(
     user=SNOWFLAKE_USER,
-    token=SNOWFLAKE_TOKEN,    # <-- Pass the PAT here as password
+    password=SNOWFLAKE_TOKEN,    # <-- Pass the PAT here as password
     account=SNOWFLAKE_ACCOUNT,
     warehouse=SNOWFLAKE_WAREHOUSE,
     role=SNOWFLAKE_ROLE,
     database=DATABASE,
-    schema=SCHEMA,
-    authenticator="oauth",   # <-- Explicitly set authenticator to 'snowflake'
+    schema=SCHEMA  # <-- Explicitly set authenticator to 'snowflake'
 )
 
 
