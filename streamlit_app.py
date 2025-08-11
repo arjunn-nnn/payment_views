@@ -28,6 +28,7 @@ if "conn" not in st.session_state:
     warehouse=SNOWFLAKE_WAREHOUSE,
     role=SNOWFLAKE_ROLE,
     database=DATABASE,
+    authenticator="snowflake",
     schema=SCHEMA  # <-- Explicitly set authenticator to 'snowflake'
 )
 
